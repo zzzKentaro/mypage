@@ -1,5 +1,5 @@
 title: Kentaro Fujii Portfolio
 description: Kentaro Fujiiの制作物と活動記録
-baseurl: "/mypage"
+baseurl: "/mypage"  # GitHub Pagesリポジトリ名
 url: "https://zzzkentaro.github.io"
 theme: minima

@@ -1,6 +1,8 @@
 ---
 layout: default
 title: 制作物
+permalink: /mypage/about/
+
 ---
 
 <section>

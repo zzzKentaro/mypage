@@ -168,3 +168,35 @@ footer {
   background-size: cover;
 }
 
+
+/* Mobile Responsiveness Improvements */
+@media (max-width: 479px) {
+  .portfolio-logo {
+    height: 100px;
+    width: 100px;
+  }
+  
+  .mdl-layout__header-row {
+    padding: 0 16px;
+  }
+
+  .portfolio-card .mdl-card__title-text {
+    font-size: 20px;
+  }
+
+  .mdl-card__supporting-text {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .portfolio-max-width {
+      width: 95%;
+  }
+}
+
+/* Ensure images in dynamic content are responsive */
+.mdl-card__media img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+}

@@ -192,18 +192,26 @@ async function renderArticle(containerId) {
 
     // Fetch single item details
     let item = null;
+
+    // Function to get mock item
+    const getMockItem = () => {
+        const list = type === 'blog' ? mockBlogData : (type === 'works' ? mockWorksData : mockCareerData);
+        return list.find(d => d.id === id);
+    };
+
     if (SERVICE_DOMAIN === "YOUR_SERVICE_DOMAIN") {
         // Mock fallback
-        const list = type === 'blog' ? mockBlogData : (type === 'works' ? mockWorksData : mockCareerData);
-        item = list.find(d => d.id === id);
+        item = getMockItem();
     } else {
         try {
             const response = await fetch(`${BASE_URL}/${type}/${id}`, {
                 headers: { "X-MICROCMS-API-KEY": API_KEY }
             });
+            if (!response.ok) throw new Error(`API Error: ${response.statusText}`);
             item = await response.json();
         } catch (e) {
-            console.error(e);
+            console.error("Fetch error, falling back to mock data:", e);
+            item = getMockItem();
         }
     }
 

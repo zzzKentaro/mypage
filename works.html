@@ -1,7 +1,7 @@
 <!doctype html>
 <!--
 Worksページ
-取り組んだこと、サークル活動など
+作品紹介など
 -->
 <html lang="en">
 
@@ -26,52 +26,48 @@ Worksページ
                     <div class="portfolio-logo"></div>
                     <span class="mdl-layout__title">Kentaro Fujii - Portfolio</span>
                 </span>
-                <!doctype html>
-                <!--
-Worksページ
-取り組んだこと、サークル活動など
--->
-                <html lang="en">
+                <!-- ナビゲーションメニュー -->
+            </div>
+            <div class="mdl-layout__header-row portfolio-navigation-row mdl-layout--large-screen-only">
+                <nav class="mdl-navigation mdl-typography--body-1-force-preferred-font">
+                    <a class="mdl-navigation__link" href="about.html">About</a>
+                    <a class="mdl-navigation__link" href="index.html">Carrer</a>
+                    <a class="mdl-navigation__link is-active" href="works.html">Works</a>
+                    <a class="mdl-navigation__link" href="gallery.html">Gallery</a>
+                    <a class="mdl-navigation__link" href="blog.html">Blog</a>
+                </nav>
+            </div>
+            <!-- コンテンツカード -->
+        </header>
+        <div class="mdl-layout__drawer mdl-layout--small-screen-only">
+            <nav class="mdl-navigation mdl-typography--body-1-force-preferred-font">
+                <a class="mdl-navigation__link" href="about.html">About</a>
+                <a class="mdl-navigation__link" href="index.html">Carrer</a>
+                <a class="mdl-navigation__link is-active" href="works.html">Works</a>
+                <a class="mdl-navigation__link" href="gallery.html">Gallery</a>
+                <a class="mdl-navigation__link" href="blog.html">Blog</a>
+            </nav>
+        </div>
+        <main class="mdl-layout__content">
+            <div class="mdl-grid portfolio-max-width" id="works-list">
+                <!-- Dynamic Content will be loaded here -->
+            </div>
+            <!-- フッターセクション -->
+            <footer class="mdl-mini-footer">
+                <div class="mdl-mini-footer__left-section">
+                    <div class="mdl-logo">My Portfolio</div>
+                </div>
+                <div class="mdl-mini-footer__right-section">
+                    <ul class="mdl-mini-footer__link-list">
+                        <li><a href="#">Help</a></li>
+                        <li><a href="#">Privacy & Terms</a></li>
+                    </ul>
+                </div>
+            </footer>
+        </main>
+    </div>
+    <script src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+    <script src="js/cms.js"></script>
+</body>
 
-                <head>
-                    <meta charset="utf-8">
-                    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-                    <meta name="description" content="A portfolio template that uses Material Design Lite.">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-                    <title>My Portfolio</title>
-                    <link rel="stylesheet"
-                        href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
-                    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.grey-pink.min.css" />
-                    <link rel="stylesheet" href="styles.css" />
-                    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-                </head>
-
-                <body>
-                    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
-                        <header class="mdl-layout__header portfolio-header">
-                            <div class="mdl-layout__header-row portfolio-logo-row">
-                                <span class="mdl-layout__title">
-                                    <div class="portfolio-logo"></div>
-                                    <span class="mdl-layout__title">Kentaro Fujii - Portfolio</span>
-                                </span>
-                                <!-- ナビゲーションメニュー -->>
-                            </div>
-                            <div class="mdl-layout__header-row portfolio-navigation-row mdl-layout--large-screen-only">
-                                <nav class="mdl-navigation mdl-typography--body-1-force-preferred-font">
-                                    <a class="mdl-navigation__link" href="about.html">About</a><!-- ここはabout -->
-                                    <a class="mdl-navigation__link" href="index.html">Carrer</a><!-- ここはCarrer -->
-                                    <a class="mdl-navigation__link" href="works.html">Works</a><!-- ここはWorks -->
-                                    <a class="mdl-navigation__link" href="gallery.html">Gallery</a><!-- ここはGallerly -->
-                                    <a class="mdl-navigation__link" href="blog.html">Blog</a>
-                                </nav>
-                            </div>
-                            <!-- コンテンツカード -->>
-                        </header>
-                        <div class="mdl-layout__drawer mdl-layout--small-screen-only">
-                            <nav class="mdl-navigation mdl-typography--body-1-force-preferred-font">
-                                <a class="mdl-navigation__link" href="about.html">About</a>
-                                <a class="mdl-navigation__link is-active" href="index.html">Carrer</a>
-                                <a class="mdl-navigation__link" href="works.html">Works</a>
-                                <a class="mdl-navigation__link" href="gallery.html">Gallery</a>
-                                <a class="mdl-navigation__link" href="blog.html">Blog</a>
-                            </nav>
+</html>

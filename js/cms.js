@@ -37,8 +37,26 @@ async function fetchData(endpoint) {
 function getMockData(endpoint) {
     if (endpoint === 'career') return mockCareerData;
     if (endpoint === 'blog') return mockBlogData;
+    if (endpoint === 'works') return mockWorksData;
     return [];
 }
+
+const mockWorksData = [
+    {
+        id: "work1",
+        title: "ポートフォリオサイト",
+        image: { url: "images/portfolio-example-01.jpg" },
+        description: "このポートフォリオサイトです。Material Design Liteを使用しています。",
+        body: "<p>詳細な内容がここに入ります。</p>"
+    },
+    {
+        id: "work2",
+        title: "サンプル作品",
+        image: { url: "images/portfolio-example-01.jpg" },
+        description: "サンプルの作品です。",
+        body: "<p>詳細な内容がここに入ります。</p>"
+    }
+];
 
 const mockCareerData = [
     {
@@ -133,6 +151,35 @@ async function renderBlog(containerId) {
     container.innerHTML = html;
 }
 
+async function renderWorks(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const data = await fetchData('works');
+
+    let html = '';
+    data.forEach(item => {
+        const imageUrl = item.image ? item.image.url : 'images/portfolio-example-01.jpg';
+        html += `
+            <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card">
+                <div class="mdl-card__media">
+                    <img class="article-image" src="${imageUrl}" border="0" alt="${item.title}" onerror="this.src='images/portfolio-example-01.jpg';">
+                </div>
+                <div class="mdl-card__title">
+                    <h2 class="mdl-card__title-text">${item.title}</h2>
+                </div>
+                <div class="mdl-card__supporting-text">
+                    ${item.description}
+                </div>
+                <div class="mdl-card__actions mdl-card--border">
+                    <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect mdl-button--accent" href="article.html?id=${item.id}&type=works">Read more</a>
+                </div>
+            </div>
+        `;
+    });
+    container.innerHTML = html;
+}
+
 async function renderArticle(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -147,7 +194,7 @@ async function renderArticle(containerId) {
     let item = null;
     if (SERVICE_DOMAIN === "YOUR_SERVICE_DOMAIN") {
         // Mock fallback
-        const list = type === 'blog' ? mockBlogData : mockCareerData;
+        const list = type === 'blog' ? mockBlogData : (type === 'works' ? mockWorksData : mockCareerData);
         item = list.find(d => d.id === id);
     } else {
         try {
@@ -193,5 +240,6 @@ async function renderArticle(containerId) {
 document.addEventListener('DOMContentLoaded', () => {
     renderCareer('career-list');
     renderBlog('blog-list');
+    renderWorks('works-list');
     renderArticle('article-detail');
 });

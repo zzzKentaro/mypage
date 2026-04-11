@@ -1,14 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="A portfolio template that uses Material Design Lite.">
+    <meta name="description" content="Portfolio article detail page.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
-    <title>Article Detail</title>
+    <title>Article Detail | My Portfolio</title>
     <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=en">
+        href="https://fonts.googleapis.com/css?family=Roboto:regular,bold,italic,thin,light,bolditalic,black,medium&amp;lang=ja">
     <link rel="stylesheet" href="material.min.css" />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
@@ -19,7 +19,36 @@
         <header class="mdl-layout__header mdl-layout__header--waterfall portfolio-header">
             <div class="mdl-layout__header-row portfolio-logo-row">
                 <span class="mdl-layout__title">
+                    <div class="portfolio-logo"></div>
+                    <span class="mdl-layout__title">Kentaro Fujii - Portfolio</span>
+                </span>
             </div>
+            <div class="mdl-layout__header-row portfolio-navigation-row mdl-layout--large-screen-only">
+                <nav class="mdl-navigation mdl-typography--body-1-force-preferred-font">
+                    <a class="mdl-navigation__link" href="about.html">About</a>
+                    <a class="mdl-navigation__link" href="index.html">Career</a>
+                    <a class="mdl-navigation__link" href="works.html">Works</a>
+                    <a class="mdl-navigation__link" href="blog.html">Blog</a>
+                </nav>
+            </div>
+        </header>
+
+        <div class="mdl-layout__drawer mdl-layout--small-screen-only">
+            <nav class="mdl-navigation mdl-typography--body-1-force-preferred-font">
+                <a class="mdl-navigation__link" href="about.html">About</a>
+                <a class="mdl-navigation__link" href="index.html">Career</a>
+                <a class="mdl-navigation__link" href="works.html">Works</a>
+                <a class="mdl-navigation__link" href="blog.html">Blog</a>
+            </nav>
+        </div>
+
+        <main class="mdl-layout__content">
+            <div class="mdl-grid portfolio-max-width" id="article-detail">
+                <div class="mdl-cell mdl-cell--12-col mdl-card mdl-shadow--2dp">
+                    <div class="mdl-card__supporting-text">記事を読み込み中です...</div>
+                </div>
+            </div>
+
             <footer class="mdl-mini-footer">
                 <div class="mdl-mini-footer__left-section">
                     <div class="mdl-logo">My Portfolio</div>
@@ -27,12 +56,13 @@
                 <div class="mdl-mini-footer__right-section">
                     <ul class="mdl-mini-footer__link-list">
                         <li><a href="#">Help</a></li>
-                        <li><a href="#">Privacy & Terms</a></li>
+                        <li><a href="#">Privacy &amp; Terms</a></li>
                     </ul>
                 </div>
             </footer>
-            </main>
+        </main>
     </div>
+
     <script src="material.min.js"></script>
     <script src="js/cms.js"></script>
 </body>

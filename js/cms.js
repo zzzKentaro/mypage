@@ -17,6 +17,7 @@ const FALLBACK_IMAGE_BY_TYPE = {
     career: "images/portfolio-example-01.jpg",
     works: "images/portfolio-example-01.jpg"
 };
+const ITEMS_PER_PAGE = 9;
 
 // --- Utility ---
 function escapeHtml(value) {
@@ -43,6 +44,12 @@ function formatDate(value) {
 
 function isLocalPreview() {
     return ["localhost", "127.0.0.1", ""].includes(window.location.hostname);
+}
+
+function getCurrentPage() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const page = Number.parseInt(urlParams.get("page") || "1", 10);
+    return Number.isFinite(page) && page > 0 ? page : 1;
 }
 
 function getDescription(item) {
@@ -91,6 +98,37 @@ function upgradeMdl(container) {
     }
 }
 
+function getTypeLabel(type) {
+    if (type === "career") return "Career";
+    if (type === "works") return "Works";
+    return type;
+}
+
+function buildPaginationHtml(type, currentPage, totalCount) {
+    const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+    if (totalPages <= 1) return "";
+
+    const listPage = LIST_PAGE_BY_TYPE[type] || "index.html";
+    const buildPageUrl = (page) => `${listPage}?page=${page}`;
+    const pageLinks = Array.from({ length: totalPages }, (_, index) => {
+        const page = index + 1;
+
+        if (page === currentPage) {
+            return `<span class="pagination-link is-active">${page}</span>`;
+        }
+
+        return `<a class="pagination-link" href="${buildPageUrl(page)}">${page}</a>`;
+    }).join("");
+
+    return `
+        <nav class="pagination" aria-label="${escapeHtml(getTypeLabel(type))} pages">
+            ${currentPage > 1 ? `<a class="pagination-link" href="${buildPageUrl(currentPage - 1)}">前へ</a>` : ""}
+            ${pageLinks}
+            ${currentPage < totalPages ? `<a class="pagination-link" href="${buildPageUrl(currentPage + 1)}">次へ</a>` : ""}
+        </nav>
+    `;
+}
+
 function buildCardHtml(item, type) {
     const imageUrl = getImageUrl(item, type);
     const fallbackImage = FALLBACK_IMAGE_BY_TYPE[type] || FALLBACK_IMAGE_BY_TYPE.career;
@@ -131,14 +169,29 @@ function buildCardHtml(item, type) {
 }
 
 // --- Fetch Functions ---
-async function fetchData(endpoint) {
+function getMockPage(endpoint, limit = ITEMS_PER_PAGE, offset = 0) {
+    const data = getMockData(endpoint);
+    return {
+        contents: data.slice(offset, offset + limit),
+        totalCount: data.length
+    };
+}
+
+async function fetchData(endpoint, options = {}) {
+    const limit = options.limit || ITEMS_PER_PAGE;
+    const offset = options.offset || 0;
+
     if (SERVICE_DOMAIN === "YOUR_SERVICE_DOMAIN") {
         console.warn("MicroCMS is not configured. Using mock data.");
-        return getMockData(endpoint);
+        return getMockPage(endpoint, limit, offset);
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/${endpoint}`, {
+        const params = new URLSearchParams({
+            limit: String(limit),
+            offset: String(offset)
+        });
+        const response = await fetch(`${BASE_URL}/${endpoint}?${params.toString()}`, {
             headers: {
                 "X-MICROCMS-API-KEY": API_KEY
             }
@@ -149,10 +202,15 @@ async function fetchData(endpoint) {
         }
 
         const data = await response.json();
-        return Array.isArray(data?.contents) ? data.contents : [];
+        return {
+            contents: Array.isArray(data?.contents) ? data.contents : [],
+            totalCount: Number.isFinite(data?.totalCount) ? data.totalCount : 0
+        };
     } catch (error) {
         console.error(`Fetch error for list endpoint \"${endpoint}\":`, error);
-        return isLocalPreview() ? getMockData(endpoint) : [];
+        return isLocalPreview()
+            ? getMockPage(endpoint, limit, offset)
+            : { contents: [], totalCount: 0 };
     }
 }
 
@@ -240,13 +298,26 @@ async function renderCollection(containerId, type) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    const data = await fetchData(type);
+    const currentPage = getCurrentPage();
+    const offset = (currentPage - 1) * ITEMS_PER_PAGE;
+    const result = await fetchData(type, {
+        limit: ITEMS_PER_PAGE,
+        offset
+    });
+    const data = result.contents;
+    const totalCount = result.totalCount;
+    const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+
+    if (totalPages > 0 && currentPage > totalPages) {
+        window.location.replace(`${LIST_PAGE_BY_TYPE[type]}?page=${totalPages}`);
+        return;
+    }
 
     if (!Array.isArray(data) || data.length === 0) {
         container.innerHTML = `
             <div class="mdl-cell mdl-cell--12-col mdl-card mdl-shadow--2dp">
                 <div class="mdl-card__supporting-text">
-                    まだ表示できる${escapeHtml(type)}データがありません。
+                    まだ表示できる${escapeHtml(getTypeLabel(type))}データがありません。
                 </div>
             </div>
         `;
@@ -254,7 +325,12 @@ async function renderCollection(containerId, type) {
         return;
     }
 
-    container.innerHTML = data.map((item) => buildCardHtml(item, type)).join("");
+    container.innerHTML = `
+        ${data.map((item) => buildCardHtml(item, type)).join("")}
+        <div class="mdl-cell mdl-cell--12-col">
+            ${buildPaginationHtml(type, currentPage, totalCount)}
+        </div>
+    `;
     upgradeMdl(container);
 }
 

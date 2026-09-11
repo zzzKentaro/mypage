@@ -1,6 +1,6 @@
 /**
  * CMS Integration Script
- * Connects to MicroCMS to fetch Career / Works / Blog data.
+ * Connects to MicroCMS to fetch Career / Works data.
  */
 
 // --- Configuration ---
@@ -8,16 +8,14 @@ const SERVICE_DOMAIN = "u3jiym64ap";
 const API_KEY = "fwON8t124kw6PBxxybvnNyFAiL3h1wShiMEi";
 const BASE_URL = `https://${SERVICE_DOMAIN}.microcms.io/api/v1`;
 
-const VALID_TYPES = ["career", "works", "blog"];
+const VALID_TYPES = ["career", "works"];
 const LIST_PAGE_BY_TYPE = {
     career: "index.html",
-    works: "works.html",
-    blog: "blog.html"
+    works: "works.html"
 };
 const FALLBACK_IMAGE_BY_TYPE = {
     career: "images/portfolio-example-01.jpg",
-    works: "images/portfolio-example-01.jpg",
-    blog: "images/example-blog01.jpg"
+    works: "images/portfolio-example-01.jpg"
 };
 
 // --- Utility ---
@@ -43,6 +41,10 @@ function formatDate(value) {
     });
 }
 
+function isLocalPreview() {
+    return ["localhost", "127.0.0.1", ""].includes(window.location.hostname);
+}
+
 function getDescription(item) {
     return item?.description || item?.excerpt || item?.summary || "";
 }
@@ -51,12 +53,32 @@ function getBodyHtml(item) {
     return item?.body || item?.content || getDescription(item) || "";
 }
 
+function getAssetUrl(asset) {
+    if (asset?.url) return asset.url;
+    if (typeof asset === "string" && asset) return asset;
+    return "";
+}
+
 function getImageUrl(item, type) {
-    if (item?.image?.url) return item.image.url;
-    if (typeof item?.image === "string" && item.image) return item.image;
-    if (item?.thumbnail?.url) return item.thumbnail.url;
-    if (typeof item?.thumbnail === "string" && item.thumbnail) return item.thumbnail;
+    const imageUrl = getAssetUrl(item?.image) || getAssetUrl(item?.thumbnail);
+    if (imageUrl) return imageUrl;
     return FALLBACK_IMAGE_BY_TYPE[type] || FALLBACK_IMAGE_BY_TYPE.career;
+}
+
+function getGithubUrl(item) {
+    return item?.githubUrl || item?.github || item?.repositoryUrl || item?.repoUrl || "";
+}
+
+function getPlanImages(item) {
+    const candidates = item?.planImages || item?.images || item?.gallery || item?.planImage || [];
+    const images = Array.isArray(candidates) ? candidates : [candidates];
+
+    return images
+        .map((image) => ({
+            url: getAssetUrl(image),
+            alt: image?.alt || image?.caption || item?.title || "企画書"
+        }))
+        .filter((image) => image.url);
 }
 
 function upgradeMdl(container) {
@@ -74,19 +96,20 @@ function buildCardHtml(item, type) {
     const fallbackImage = FALLBACK_IMAGE_BY_TYPE[type] || FALLBACK_IMAGE_BY_TYPE.career;
     const title = escapeHtml(item?.title || "Untitled");
     const description = getDescription(item);
-    const date = type === "blog" ? formatDate(item?.publishedAt) : "";
+    const date = "";
     const id = encodeURIComponent(item?.id || "");
     const safeType = encodeURIComponent(type);
+    const githubUrl = type === "works" ? getGithubUrl(item) : "";
 
     return `
         <div class="mdl-cell mdl-card mdl-shadow--4dp portfolio-card">
             <div class="mdl-card__media">
                 <img
                     class="article-image"
-                    src="${imageUrl}"
+                    src="${escapeHtml(imageUrl)}"
                     border="0"
                     alt="${title}"
-                    onerror="this.onerror=null;this.src='${fallbackImage}';"
+                    onerror="this.onerror=null;this.src='${escapeHtml(fallbackImage)}';"
                 >
             </div>
             <div class="mdl-card__title">
@@ -95,6 +118,7 @@ function buildCardHtml(item, type) {
             <div class="mdl-card__supporting-text">
                 ${date ? `<span>${date}</span><br>` : ""}
                 ${description || "説明はまだありません。"}
+                ${githubUrl ? `<p class="work-card-meta">GitHubあり</p>` : ""}
             </div>
             <div class="mdl-card__actions mdl-card--border">
                 <a
@@ -128,7 +152,7 @@ async function fetchData(endpoint) {
         return Array.isArray(data?.contents) ? data.contents : [];
     } catch (error) {
         console.error(`Fetch error for list endpoint \"${endpoint}\":`, error);
-        return getMockData(endpoint);
+        return isLocalPreview() ? getMockData(endpoint) : [];
     }
 }
 
@@ -155,24 +179,19 @@ async function fetchDetail(type, id) {
         return await response.json();
     } catch (error) {
         console.error(`Fetch error for detail endpoint \"${type}/${id}\":`, error);
-        return getMockItem(type, id);
+        return isLocalPreview() ? getMockItem(type, id) : null;
     }
 }
 
 // --- Mock Data (Fallback) ---
 function getMockData(endpoint) {
     if (endpoint === "career") return mockCareerData;
-    if (endpoint === "blog") return mockBlogData;
     if (endpoint === "works") return mockWorksData;
     return [];
 }
 
 function getMockItem(type, id) {
-    const list = type === "blog"
-        ? mockBlogData
-        : type === "works"
-            ? mockWorksData
-            : mockCareerData;
+    const list = type === "works" ? mockWorksData : mockCareerData;
 
     return list.find((item) => item.id === id) || null;
 }
@@ -183,7 +202,12 @@ const mockWorksData = [
         title: "ポートフォリオサイト",
         image: { url: "images/portfolio-example-01.jpg" },
         description: "このポートフォリオサイトです。Material Design Liteを使用しています。",
-        body: "<p>詳細な内容がここに入ります。</p>"
+        body: "<p>詳細な内容がここに入ります。</p>",
+        githubUrl: "https://github.com/",
+        planImages: [
+            { url: "images/portfolio-example-02.jpg", alt: "企画書サンプル 1" },
+            { url: "images/portfolio-example-03.jpg", alt: "企画書サンプル 2" }
+        ]
     },
     {
         id: "work2",
@@ -208,18 +232,6 @@ const mockCareerData = [
         image: { url: "images/carrer-Dot.png" },
         description: "ゲーム素材自作のため、ドット絵を書く。",
         body: "<p>詳細な内容がここに入ります。</p>"
-    }
-];
-
-const mockBlogData = [
-    {
-        id: "blog1",
-        title: "Velit anim eiusmod labore sit amet",
-        image: { url: "images/example-blog01.jpg" },
-        publishedAt: "2023-11-20T00:00:00Z",
-        description: "Excepteur reprehenderit sint exercitation ipsum consequat qui sit id velit elit.",
-        category: { name: "Latest" },
-        body: "<p>Blog post content...</p>"
     }
 ];
 
@@ -250,12 +262,41 @@ async function renderCareer(containerId) {
     await renderCollection(containerId, "career");
 }
 
-async function renderBlog(containerId) {
-    await renderCollection(containerId, "blog");
-}
-
 async function renderWorks(containerId) {
     await renderCollection(containerId, "works");
+}
+
+function buildWorkLinksHtml(item) {
+    const githubUrl = getGithubUrl(item);
+
+    if (!githubUrl) return "";
+
+    return `
+        <div class="work-links">
+            <a
+                class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect mdl-button--accent"
+                href="${escapeHtml(githubUrl)}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >GitHub</a>
+        </div>
+    `;
+}
+
+function buildPlanImagesHtml(item) {
+    const images = getPlanImages(item);
+    if (images.length === 0) return "";
+
+    return `
+        <div class="work-plan-images">
+            <h2>企画書</h2>
+            ${images.map((image) => `
+                <figure>
+                    <img src="${escapeHtml(image.url)}" alt="${escapeHtml(image.alt)}" loading="lazy">
+                </figure>
+            `).join("")}
+        </div>
+    `;
 }
 
 async function renderArticle(containerId) {
@@ -265,8 +306,13 @@ async function renderArticle(containerId) {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
     const requestedType = urlParams.get("type") || "career";
-    const type = VALID_TYPES.includes(requestedType) ? requestedType : "career";
+    const type = VALID_TYPES.includes(requestedType) ? requestedType : "";
     const listPage = LIST_PAGE_BY_TYPE[type] || "index.html";
+
+    if (!type) {
+        window.location.replace("works.html");
+        return;
+    }
 
     if (!id) {
         container.innerHTML = `
@@ -309,8 +355,10 @@ async function renderArticle(containerId) {
     const imageUrl = getImageUrl(item, type);
     const fallbackImage = FALLBACK_IMAGE_BY_TYPE[type] || FALLBACK_IMAGE_BY_TYPE.career;
     const title = escapeHtml(item?.title || "Untitled");
-    const date = type === "blog" ? formatDate(item?.publishedAt) : "";
+    const date = "";
     const bodyHtml = getBodyHtml(item);
+    const workLinksHtml = type === "works" ? buildWorkLinksHtml(item) : "";
+    const planImagesHtml = type === "works" ? buildPlanImagesHtml(item) : "";
 
     document.title = `${item?.title || "Article Detail"} | My Portfolio`;
 
@@ -319,11 +367,11 @@ async function renderArticle(containerId) {
             <div class="mdl-card__media">
                 <img
                     class="article-image"
-                    src="${imageUrl}"
+                    src="${escapeHtml(imageUrl)}"
                     border="0"
                     alt="${title}"
                     style="max-height: 400px; object-fit: cover;"
-                    onerror="this.onerror=null;this.src='${fallbackImage}';"
+                    onerror="this.onerror=null;this.src='${escapeHtml(fallbackImage)}';"
                 >
             </div>
             <div class="mdl-card__title">
@@ -334,6 +382,8 @@ async function renderArticle(containerId) {
                 <div class="article-body">
                     ${bodyHtml || "本文はまだありません。"}
                 </div>
+                ${workLinksHtml}
+                ${planImagesHtml}
             </div>
             <div class="mdl-card__actions mdl-card--border">
                 <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect" href="${listPage}">一覧へ戻る</a>
@@ -347,7 +397,6 @@ async function renderArticle(containerId) {
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
     renderCareer("career-list");
-    renderBlog("blog-list");
     renderWorks("works-list");
     renderArticle("article-detail");
 });

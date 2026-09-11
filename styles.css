@@ -113,6 +113,41 @@ img.article-image {
   height: auto;
 }
 
+.work-card-meta {
+  margin: 12px 0 0;
+  color: #616161;
+  font-size: 13px;
+}
+
+.work-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 24px 0;
+}
+
+.work-plan-images {
+  margin-top: 28px;
+}
+
+.work-plan-images h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.work-plan-images figure {
+  margin: 0 0 20px;
+}
+
+.work-plan-images img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #ddd;
+  background: #fff;
+}
+
 .portfolio-max-width {
   max-width: 900px;
   margin: auto;

@@ -9,13 +9,15 @@ const API_KEY = "fwON8t124kw6PBxxybvnNyFAiL3h1wShiMEi";
 const BASE_URL = `https://${SERVICE_DOMAIN}.microcms.io/api/v1`;
 
 const VALID_TYPES = ["career", "works"];
+const PORTFOLIO_ENDPOINT = "portfolio";
 const LIST_PAGE_BY_TYPE = {
     career: "index.html",
     works: "works.html"
 };
 const FALLBACK_IMAGE_BY_TYPE = {
     career: "images/portfolio-example-01.jpg",
-    works: "images/portfolio-example-01.jpg"
+    works: "images/portfolio-example-01.jpg",
+    portfolio: "images/portfolio-example-01.jpg"
 };
 const ITEMS_PER_PAGE = 9;
 
@@ -241,6 +243,35 @@ async function fetchDetail(type, id) {
     }
 }
 
+async function fetchSingleContent(endpoint, fallbackItem) {
+    if (SERVICE_DOMAIN === "YOUR_SERVICE_DOMAIN") {
+        return fallbackItem;
+    }
+
+    try {
+        const response = await fetch(`${BASE_URL}/${endpoint}`, {
+            headers: {
+                "X-MICROCMS-API-KEY": API_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data?.contents)) {
+            return data.contents[0] || fallbackItem;
+        }
+
+        return data;
+    } catch (error) {
+        console.error(`Fetch error for single endpoint \"${endpoint}\":`, error);
+        return isLocalPreview() ? fallbackItem : null;
+    }
+}
+
 // --- Mock Data (Fallback) ---
 function getMockData(endpoint) {
     if (endpoint === "career") return mockCareerData;
@@ -292,6 +323,15 @@ const mockCareerData = [
         body: "<p>詳細な内容がここに入ります。</p>"
     }
 ];
+
+const mockPortfolioPage = {
+    title: "Portfolio",
+    image: { url: "images/profile-header2.jpg" },
+    body: `
+        <p>ここにmicroCMSで編集したポートフォリオ本文が表示されます。</p>
+        <p>作品紹介、制作背景、担当範囲、使った技術、制作で考えたことなどを、1ページの長い記事としてまとめられます。</p>
+    `
+};
 
 // --- Rendering Functions ---
 async function renderCollection(containerId, type) {
@@ -470,9 +510,63 @@ async function renderArticle(containerId) {
     upgradeMdl(container);
 }
 
+async function renderPortfolio(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    const item = await fetchSingleContent(PORTFOLIO_ENDPOINT, mockPortfolioPage);
+
+    if (!item) {
+        container.innerHTML = `
+            <div class="mdl-cell mdl-cell--12-col mdl-card mdl-shadow--4dp">
+                <div class="mdl-card__title">
+                    <h1 class="mdl-card__title-text">Portfolio</h1>
+                </div>
+                <div class="mdl-card__supporting-text">
+                    ポートフォリオを取得できませんでした。
+                </div>
+            </div>
+        `;
+        upgradeMdl(container);
+        return;
+    }
+
+    const title = escapeHtml(item?.title || "Portfolio");
+    const imageUrl = getImageUrl(item, "portfolio");
+    const fallbackImage = FALLBACK_IMAGE_BY_TYPE.portfolio;
+    const bodyHtml = getBodyHtml(item);
+
+    document.title = `${item?.title || "Portfolio"} | My Portfolio`;
+
+    container.innerHTML = `
+        <article class="mdl-cell mdl-cell--12-col mdl-card mdl-shadow--4dp portfolio-page-card">
+            <div class="mdl-card__media">
+                <img
+                    class="article-image"
+                    src="${escapeHtml(imageUrl)}"
+                    border="0"
+                    alt="${title}"
+                    onerror="this.onerror=null;this.src='${escapeHtml(fallbackImage)}';"
+                >
+            </div>
+            <div class="mdl-card__title">
+                <h1 class="mdl-card__title-text">${title}</h1>
+            </div>
+            <div class="mdl-card__supporting-text">
+                <div class="article-body portfolio-page-body">
+                    ${bodyHtml || "本文はまだありません。"}
+                </div>
+            </div>
+        </article>
+    `;
+
+    upgradeMdl(container);
+}
+
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
     renderCareer("career-list");
     renderWorks("works-list");
     renderArticle("article-detail");
+    renderPortfolio("portfolio-page");
 });

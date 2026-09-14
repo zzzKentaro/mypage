@@ -1,10 +1,13 @@
 .portfolio-header {
   position: relative;
   background-image: url(images/header-bg.jpg);
+  background-position: center;
+  background-size: cover;
 }
 
 .portfolio-header .mdl-layout__header-row {
-  padding: 0;
+  height: 64px;
+  padding: 0 24px;
   -webkit-justify-content: center;
       -ms-flex-pack: center;
           justify-content: center;
@@ -14,32 +17,19 @@
   font-size: 14px;
   text-align: center;
   font-weight: 300;
-}
-
-.is-compact .mdl-layout__title span {
-  display: none;
+  line-height: 1.4;
 }
 
 .portfolio-logo-row {
-  min-height: 200px;
-}
-
-.is-compact .portfolio-logo-row {
-  min-height: auto;
+  min-height: 64px;
 }
 
 .portfolio-logo {
   background: url(images/MyLogoMini.png) 50% no-repeat;
   background-size: cover;
-  height: 150px;
-  width: 150px;
-  margin: auto auto 10px;
-}
-
-.is-compact .portfolio-logo {
-  height: 50px;
-  width: 50px;
-  margin-top: 7px;
+  height: 42px;
+  width: 42px;
+  margin: 0 auto 4px;
 }
 
 .portfolio-navigation-row {
@@ -148,6 +138,40 @@ img.article-image {
   background: #fff;
 }
 
+.portfolio-page-card .mdl-card__title {
+  padding: 24px 32px 8px;
+}
+
+.portfolio-page-card .mdl-card__supporting-text {
+  width: auto;
+  padding: 8px 32px 32px;
+  color: rgba(0, 0, 0, 0.74);
+}
+
+.portfolio-page-body {
+  max-width: 720px;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.portfolio-page-body h2 {
+  margin-top: 32px;
+  font-size: 28px;
+  line-height: 1.35;
+}
+
+.portfolio-page-body h3 {
+  margin-top: 28px;
+  font-size: 22px;
+  line-height: 1.4;
+}
+
+.portfolio-page-body img {
+  max-width: 100%;
+  height: auto;
+}
+
 .pagination {
   display: flex;
   flex-wrap: wrap;
@@ -234,16 +258,25 @@ footer {
 /* Mobile Responsiveness Improvements */
 @media (max-width: 479px) {
   .portfolio-logo {
-    height: 100px;
-    width: 100px;
+    height: 36px;
+    width: 36px;
   }
   
-  .mdl-layout__header-row {
+  .portfolio-header .mdl-layout__header-row {
+    height: 56px;
     padding: 0 16px;
   }
 
   .portfolio-card .mdl-card__title-text {
     font-size: 20px;
+  }
+
+  .portfolio-page-card .mdl-card__title {
+    padding: 20px 20px 4px;
+  }
+
+  .portfolio-page-card .mdl-card__supporting-text {
+    padding: 8px 20px 24px;
   }
 
   .mdl-card__supporting-text {

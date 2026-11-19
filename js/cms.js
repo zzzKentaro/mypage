@@ -7,6 +7,8 @@
 const SERVICE_DOMAIN = "u3jiym64ap";
 const API_KEY = "fwON8t124kw6PBxxybvnNyFAiL3h1wShiMEi";
 const BASE_URL = `https://${SERVICE_DOMAIN}.microcms.io/api/v1`;
+const NEW_BASE_URL = "https://ud6oupbkzz.microcms.io/api/v1";
+const NEW_API_KEY = "vY5zUXDodp6VeJ1zDDNYz65tG8ubbSyOfIqc";
 
 const VALID_TYPES = ["career", "works"];
 const PORTFOLIO_ENDPOINT = "portfolio";
@@ -163,7 +165,7 @@ function buildCardHtml(item, type) {
             <div class="mdl-card__actions mdl-card--border">
                 <a
                     class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect mdl-button--accent"
-                    href="article.html?id=${id}&type=${safeType}"
+                    href="article.html?id=${id}&type=${safeType}${item.cmsSource === 'new' ? '&source=new' : ''}"
                 >Read more</a>
             </div>
         </div>
@@ -182,6 +184,10 @@ function getMockPage(endpoint, limit = ITEMS_PER_PAGE, offset = 0) {
 async function fetchData(endpoint, options = {}) {
     const limit = options.limit || ITEMS_PER_PAGE;
     const offset = options.offset || 0;
+
+    if (endpoint === "works") {
+        return fetchWorksPage(limit, offset);
+    }
 
     if (SERVICE_DOMAIN === "YOUR_SERVICE_DOMAIN") {
         console.warn("MicroCMS is not configured. Using mock data.");
@@ -216,7 +222,43 @@ async function fetchData(endpoint, options = {}) {
     }
 }
 
-async function fetchDetail(type, id) {
+async function fetchWorksPage(limit, offset) {
+    const results = await Promise.allSettled([
+        fetchAllWorks(BASE_URL, API_KEY, "old"),
+        fetchAllWorks(NEW_BASE_URL, NEW_API_KEY, "new")
+    ]);
+    const contents = results.flatMap((result) => {
+        if (result.status === "fulfilled") return result.value;
+        console.error("Works service could not be loaded:", result.reason);
+        return [];
+    });
+    contents.sort((a, b) => {
+        const dateDifference = new Date(b.publishedAt || b.createdAt || 0) - new Date(a.publishedAt || a.createdAt || 0);
+        return dateDifference || `${a.cmsSource}/${a.id}`.localeCompare(`${b.cmsSource}/${b.id}`);
+    });
+    return { contents: contents.slice(offset, offset + limit), totalCount: contents.length };
+}
+
+async function fetchAllWorks(baseUrl, apiKey, cmsSource) {
+    const contents = [];
+    let totalCount;
+    do {
+        const response = await fetch(`${baseUrl}/works?limit=100&offset=${contents.length}&orders=-publishedAt,-createdAt`, {
+            headers: { "X-MICROCMS-API-KEY": apiKey }
+        });
+        if (!response.ok) throw new Error(`Works API Error: ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data.contents) || !Number.isFinite(data.totalCount)) {
+            throw new Error("Invalid Works API response");
+        }
+        contents.push(...data.contents.map((item) => ({ ...item, cmsSource })));
+        totalCount = data.totalCount;
+        if (data.contents.length === 0) break;
+    } while (contents.length < totalCount);
+    return contents;
+}
+
+async function fetchDetail(type, id, source = "old") {
     if (!VALID_TYPES.includes(type)) {
         throw new Error(`Unsupported content type: ${type}`);
     }
@@ -226,9 +268,12 @@ async function fetchDetail(type, id) {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/${type}/${encodeURIComponent(id)}`, {
+        const useNewService = type === "works" && source === "new";
+        const baseUrl = useNewService ? NEW_BASE_URL : BASE_URL;
+        const apiKey = useNewService ? NEW_API_KEY : API_KEY;
+        const response = await fetch(`${baseUrl}/${type}/${encodeURIComponent(id)}`, {
             headers: {
-                "X-MICROCMS-API-KEY": API_KEY
+                "X-MICROCMS-API-KEY": apiKey
             }
         });
 
@@ -249,9 +294,9 @@ async function fetchSingleContent(endpoint, fallbackItem) {
     }
 
     try {
-        const response = await fetch(`${BASE_URL}/${endpoint}`, {
+        const response = await fetch(`${NEW_BASE_URL}/${endpoint}`, {
             headers: {
-                "X-MICROCMS-API-KEY": API_KEY
+                "X-MICROCMS-API-KEY": NEW_API_KEY
             }
         });
 
@@ -448,7 +493,7 @@ async function renderArticle(containerId) {
         return;
     }
 
-    const item = await fetchDetail(type, id);
+    const item = await fetchDetail(type, id, urlParams.get("source"));
 
     if (!item) {
         container.innerHTML = `
